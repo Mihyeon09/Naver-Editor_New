@@ -1,0 +1,5 @@
+{
+  "name": "N Blog Editor Clone",
+  "description": "A fully functional blog editor interface inspired by Naver Blog, built with React and Tailwind CSS. It features a rich text editing toolbar, content insertion options, and a responsive layout.",
+  "requestFramePermissions": []
+}
