@@ -34,9 +34,9 @@ export const SpellcheckIcon = () => <Icon><path strokeLinecap="round" strokeLine
 export const BoldIcon = () => <Icon><path strokeLinecap="round" strokeLinejoin="round" d="M13 12H8m5 0a3 3 0 110 6H8a3 3 0 110-6zm5 0a3 3 0 100-6H8a3 3 0 100 6z" /></Icon>;
 export const ItalicIcon = () => <Icon><path strokeLinecap="round" strokeLinejoin="round" d="M9.043 4h7.914M6 20h7.914m-5.957-16l-3 16" /></Icon>;
 export const UnderlineIcon = () => <Icon><path strokeLinecap="round" strokeLinejoin="round" d="M17 16v2a2 2 0 01-2 2H9a2 2 0 01-2-2v-2m10-12v12H7V4h10z" /></Icon>;
-export const StrikethroughIcon = () => <Icon><path strokeLinecap="round" strokeLinejoin="round" d="M4 12h16" /><path d="M9 7.5S10 6 12 6s3 1.5 3 1.5M9 16.5S10 18 12 18s3-1.5 3-1.5" /></Icon>;
-export const TextColorIcon = () => <Icon><path strokeLinecap="round" strokeLinejoin="round" d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h-2M12 15V6a2 2 0 00-2-2H6a2 2 0 00-2 2v9a2 2 0 002 2h2" /></Icon>;
-export const BgColorIcon = () => <Icon><path strokeLinecap="round" strokeLinejoin="round" d="M7 21a4 4 0 01-4-4V5a2 2 0 012-2h4a2 2 0 012 2v2m0 0h1.5a2.5 2.5 0 012.5 2.5V21a2.5 2.5 0 01-2.5 2.5h-1.5m0 0V9" /></Icon>;
+export const StrikethroughIcon = () => <Icon className="w-4 h-4"><path strokeLinecap="round" strokeLinejoin="round" d="M6 12h12" /><path d="M9 7.5a4 4 0 0 1 6 0" /><path d="M9 16.5a4 4 0 0 0 6 0" /></Icon>;
+export const TextColorIcon = () => <Icon className="w-4 h-4"><path strokeLinecap="round" strokeLinejoin="round" d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h-2M12 15V6a2 2 0 00-2-2H6a2 2 0 00-2 2v9a2 2 0 002 2h2" /></Icon>;
+export const BgColorIcon = () => <Icon className="w-4 h-4"><path strokeLinecap="round" strokeLinejoin="round" d="M7 21a4 4 0 01-4-4V5a2 2 0 012-2h4a2 2 0 012 2v2m0 0h1.5a2.5 2.5 0 012.5 2.5V21a2.5 2.5 0 01-2.5 2.5h-1.5m0 0V9" /></Icon>;
 export const LineHeightIcon = () => <Icon><path strokeLinecap="round" strokeLinejoin="round" d="M4 8h16M4 16h16M12 4v4m0 8v4" /></Icon>;
 export const QuoteIcon = () => <Icon><path strokeLinecap="round" strokeLinejoin="round" d="M7 8h10M7 12h4m1 8l-4-4H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-3l-4 4z" /></Icon>;
 export const DividerIcon = () => <Icon><path strokeLinecap="round" strokeLinejoin="round" d="M5 12h14" /></Icon>;
@@ -44,6 +44,7 @@ export const ListIcon = () => <Icon><path strokeLinecap="round" strokeLinejoin="
 export const ListNumbersIcon = () => <Icon><path strokeLinecap="round" strokeLinejoin="round" d="M9 6h11M9 10h11M9 14h11M9 18h11M4 6h1v4M4 14h1v4" /></Icon>;
 export const OutdentIcon = () => <Icon><path strokeLinecap="round" strokeLinejoin="round" d="M7 16l-4-4m0 0l4-4m-4 4h18" /></Icon>;
 export const IndentIcon = () => <Icon><path strokeLinecap="round" strokeLinejoin="round" d="M17 8l4 4m0 0l-4 4m4-4H3" /></Icon>;
+export const CommentIcon = () => <Icon><path strokeLinecap="round" strokeLinejoin="round" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" /></Icon>;
 
 export const SearchIcon = () => <Icon><path strokeLinecap="round" strokeLinejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" /></Icon>;
 export const ContentSmallIcon = () => <Icon><path strokeLinecap="round" strokeLinejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" /></Icon>;
@@ -54,7 +55,7 @@ export const TvIcon = () => <Icon><path strokeLinecap="round" strokeLinejoin="ro
 export const ShoppingIcon = () => <Icon><path strokeLinecap="round" strokeLinejoin="round" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" /></Icon>;
 export const HeadphonesIcon = () => <Icon><path strokeLinecap="round" strokeLinejoin="round" d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 01-3-3V5a3 3 0 116 0v6a3 3 0 01-3 3z" /></Icon>;
 export const ImageSmallIcon = () => <Icon><path strokeLinecap="round" strokeLinejoin="round" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" /></Icon>;
-export const NewsIcon = () => <Icon><path strokeLinecap="round" strokeLinejoin="round" d="M19 20H5a2 2 0 01-2-2V6a2 2 0 012-2h10a2 2 0 012 2v1m2 13a2 2 0 01-2-2V7m2 13a2 2 0 002-2V9a2 2 0 00-2-2h-2m-4-3h4m-4 4h4m-4 4h4m-4 4h4" /></Icon>;
+export const NewsIcon = () => <Icon><path strokeLinecap="round" strokeLinejoin="round" d="M19 20H5a2 2 0 01-2-2V6a2 2 0 012-2h10a2 2 0 012 2v1m2 13a2 2 0 01-2-2V7m2 13a2 2 0 002-2V9a2 2 0 00-2-2h-2m-4-3h4m-4 4h4m-4 4h4" /></Icon>;
 export const FullscreenIcon = () => <Icon><path strokeLinecap="round" strokeLinejoin="round" d="M4 8V4m0 0h4M4 4l5 5m11-1v4m0 0h-4m4 0l-5-5M4 16v4m0 0h4m-4 0l5-5m11 5v-4m0 0h-4m4 0l-5 5" /></Icon>;
 
 export const MonitorIcon = () => <Icon><path strokeLinecap="round" strokeLinejoin="round" d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" /></Icon>;
@@ -68,3 +69,6 @@ export const DuplicateIcon = () => <Icon className="w-4 h-4"><path strokeLinecap
 export const TurnIntoIcon = () => <Icon className="w-4 h-4"><path strokeLinecap="round" strokeLinejoin="round" d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4" /></Icon>;
 export
 const CheckIcon = () => <Icon className="w-4 h-4"><path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" /></Icon>;
+export const SubscriptIcon = () => <Icon className="w-4 h-4"><path strokeLinecap="round" strokeLinejoin="round" d="M9 7h6m-3 0v7m3 2 2 2m0-2-2 2" /></Icon>;
+export const SuperscriptIcon = () => <Icon className="w-4 h-4"><path strokeLinecap="round" strokeLinejoin="round" d="M9 12h6m-3 0V5m3-2 2 2m0-2-2 2" /></Icon>;
+export const SlashIcon = () => <Icon className="w-full h-full text-gray-400"><path strokeLinecap="round" strokeLinejoin="round" d="M5 19L19 5" strokeWidth={1.5} /></Icon>;

@@ -2,8 +2,12 @@ import React from 'react';
 import EditableBlock from './EditableBlock';
 import ImageBlock from './ImageBlock';
 import { Block } from '../App';
+import TitleInput from './TitleInput';
 
 interface MainContentProps {
+  title: string;
+  onTitleChange: (value: string) => void;
+  onTitleEnter: () => void;
   blocks: Block[];
   onUpdateBlock: (id: string, content: string) => void;
   onSetActiveBlock: (id: string | null) => void;
@@ -19,6 +23,9 @@ interface MainContentProps {
 }
 
 const MainContent: React.FC<MainContentProps> = ({
+  title,
+  onTitleChange,
+  onTitleEnter,
   blocks,
   onUpdateBlock,
   onSetActiveBlock,
@@ -40,9 +47,14 @@ const MainContent: React.FC<MainContentProps> = ({
       }}
     >
       <div 
-        className="max-w-4xl mx-auto py-8 px-12 text-gray-900 dark:text-gray-100" 
+        className="max-w-4xl mx-auto pt-8 pb-8 px-12 text-gray-900 dark:text-gray-100" 
         onClick={(e) => e.stopPropagation()}
       >
+        <TitleInput 
+          value={title}
+          onChange={onTitleChange}
+          onEnterPress={onTitleEnter}
+        />
         {blocks.map((block, index) => {
           if (block.type === 'image') {
             return (

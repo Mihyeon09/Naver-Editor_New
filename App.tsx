@@ -26,8 +26,8 @@ export interface MenuState {
 
 const App: React.FC = () => {
   const [theme, setTheme] = useState<Theme>('light');
+  const [title, setTitle] = useState('');
   const [blocks, setBlocks] = useState<Block[]>([
-    { id: nanoid(), type: 'h1', content: '' },
     { id: nanoid(), type: 'p', content: '' },
   ]);
   const [activeBlockId, setActiveBlockId] = useState<string | null>(null);
@@ -153,6 +153,12 @@ const App: React.FC = () => {
     setBlocks(newBlocks);
   };
 
+  const handleTitleEnter = () => {
+    if (blocks.length > 0) {
+      setNextFocusId(blocks[0].id);
+    }
+  };
+
   const activeBlock = blocks.find(block => block.id === activeBlockId);
 
   return (
@@ -168,6 +174,9 @@ const App: React.FC = () => {
         <TopToolbar onAddImageBlock={addImageBlock} />
         <BottomToolbar activeBlock={activeBlock} onChangeBlockType={changeBlockType}/>
         <MainContent 
+          title={title}
+          onTitleChange={setTitle}
+          onTitleEnter={handleTitleEnter}
           blocks={blocks} 
           onUpdateBlock={updateBlock} 
           onSetActiveBlock={setActiveBlockId}
@@ -192,6 +201,7 @@ const App: React.FC = () => {
             onDuplicate={duplicateBlock}
             onChangeBlockType={changeBlockType}
             currentType={blocks.find(b => b.id === menuState.blockId)?.type || 'p'}
+            onClose={closeBlockMenu}
           />
         </div>
       )}

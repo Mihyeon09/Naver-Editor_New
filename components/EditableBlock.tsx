@@ -76,7 +76,7 @@ const EditableBlock: React.FC<EditableBlockProps> = ({
     switch (block.type) {
       case 'h1': return '제목을 입력하세요';
       case 'h2': return '소제목';
-      default: return '내용을 입력하세요...';
+      default: return "'/'를 입력하여 블록을 고르세요.";
     }
   };
   
