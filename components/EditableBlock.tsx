@@ -1,15 +1,14 @@
 import React, { useRef, useEffect, useState } from 'react';
 import ContentEditable from 'react-contenteditable';
 import { Block, BlockType } from '../App';
-import { PlusIcon, DragHandleIcon } from './Icons';
+import { DragHandleIcon, PlusIcon } from './Icons';
 
 interface EditableBlockProps {
   block: Block;
   onUpdate: (id: string, content: string) => void;
   onFocus: () => void;
   isActive: boolean;
-  onAddBlockAfter: (currentBlockId: string) => void;
-  onDeleteBlock: (blockId: string) => void;
+  onDeleteBlock: (id: string) => void;
   isFirst: boolean;
   shouldFocus: boolean;
   onDoneFocusing: () => void;
@@ -17,122 +16,141 @@ interface EditableBlockProps {
   onMoveBlock: (dragId: string, dropId: string) => void;
   draggedBlockId: string | null;
   onSetDraggedBlockId: (id: string | null) => void;
+  isSlashMenuOpen: boolean;
+  onOpenSlashMenu: (blockId: string, position: { top: number; left: number }) => void;
+  onCloseSlashMenu: () => void;
+  onUpdateSlashMenuFilter: (filter: string) => void;
+  onSlashMenuKeyDown: (key: 'ArrowUp' | 'ArrowDown' | 'Enter') => void;
 }
 
+const getCaretCoordinates = () => {
+    let x = 0, y = 0;
+    const selection = window.getSelection();
+    if (selection && selection.rangeCount > 0) {
+        const range = selection.getRangeAt(0).cloneRange();
+        range.collapse(true);
+        const rect = range.getClientRects()[0];
+        if (rect) {
+            x = rect.left;
+            y = rect.top;
+        }
+    }
+    return { x, y };
+};
+
 const EditableBlock: React.FC<EditableBlockProps> = ({
-  block, onUpdate, onFocus, isActive,
-  onAddBlockAfter, onDeleteBlock, isFirst,
-  shouldFocus, onDoneFocusing, onOpenMenu,
-  onMoveBlock, draggedBlockId, onSetDraggedBlockId
+  block,
+  onUpdate,
+  onFocus,
+  isActive,
+  onDeleteBlock,
+  isFirst,
+  shouldFocus,
+  onDoneFocusing,
+  onOpenMenu,
+  onMoveBlock,
+  draggedBlockId,
+  onSetDraggedBlockId,
+  isSlashMenuOpen,
+  onOpenSlashMenu,
+  onCloseSlashMenu,
+  onUpdateSlashMenuFilter,
+  onSlashMenuKeyDown,
 }) => {
   const contentEditableRef = useRef<HTMLElement>(null);
   const blockRef = useRef<HTMLDivElement>(null);
-  const [isDraggingOver, setIsDraggingOver] = useState(false);
+  const [showControls, setShowControls] = useState(false);
+  const tag = block.type as keyof JSX.IntrinsicElements;
 
   useEffect(() => {
     if (shouldFocus && contentEditableRef.current) {
       contentEditableRef.current.focus();
-      // Place cursor at the end
-      const range = document.createRange();
-      const sel = window.getSelection();
-      range.selectNodeContents(contentEditableRef.current);
-      range.collapse(false);
-      sel?.removeAllRanges();
-      sel?.addRange(range);
       onDoneFocusing();
     }
   }, [shouldFocus, onDoneFocusing]);
 
   const handleChange = (e: any) => {
-    onUpdate(block.id, e.target.value);
-  };
+    const newContent = e.target.value;
+    onUpdate(block.id, newContent);
 
-  const handleKeyDown = (e: React.KeyboardEvent<HTMLElement>) => {
-    if (e.key === 'Enter') {
-      e.preventDefault();
-      onAddBlockAfter(block.id);
+    if (newContent.includes('/')) {
+        const caret = getCaretCoordinates();
+        const slashIndex = newContent.lastIndexOf('/');
+        const filter = newContent.substring(slashIndex + 1);
+        onUpdateSlashMenuFilter(filter);
+        if (!isSlashMenuOpen) {
+            onOpenSlashMenu(block.id, { top: caret.y + 24, left: caret.x });
+        }
+    } else {
+        if (isSlashMenuOpen) {
+            onCloseSlashMenu();
+        }
     }
-    if (e.key === 'Backspace' && (!block.content || block.content === '<br>')) {
-      if (!isFirst) {
+  };
+  
+  const handleKeyDown = (e: React.KeyboardEvent) => {
+    if (e.key === 'Backspace' && block.content === '' && !isFirst) {
+      e.preventDefault();
+      onDeleteBlock(block.id);
+    }
+    if (isSlashMenuOpen) {
+      if (e.key === 'ArrowUp' || e.key === 'ArrowDown' || e.key === 'Enter') {
         e.preventDefault();
-        onDeleteBlock(block.id);
+        onSlashMenuKeyDown(e.key);
+      }
+      if(e.key === 'Escape') {
+        e.preventDefault();
+        onCloseSlashMenu();
       }
     }
   };
   
-  const getElementByBlockType = (type: BlockType): keyof JSX.IntrinsicElements => {
-    switch (type) {
-        case 'h1': return 'h1';
-        case 'h2': return 'h2';
-        case 'p':
-        default: return 'p';
-    }
-  };
-
-  const Tag = getElementByBlockType(block.type);
-
-  const getPlaceholder = () => {
-    if (block.content) return '';
-    switch (block.type) {
-      case 'h1': return '제목을 입력하세요';
-      case 'h2': return '소제목';
-      default: return "'/'를 입력하여 블록을 고르세요.";
-    }
-  };
-  
-  // Drag and Drop handlers
-  const handleDragStart = (e: React.DragEvent<HTMLDivElement>) => {
-    e.dataTransfer.setData('text/plain', block.id);
+  const handleDragStart = (e: React.DragEvent) => {
     onSetDraggedBlockId(block.id);
+    e.dataTransfer.effectAllowed = 'move';
   };
   
-  const handleDragEnd = () => {
-    onSetDraggedBlockId(null);
-  };
-
-  const handleDragOver = (e: React.DragEvent<HTMLDivElement>) => {
+  const handleDragOver = (e: React.DragEvent) => {
     e.preventDefault();
     if (draggedBlockId && draggedBlockId !== block.id) {
-        setIsDraggingOver(true);
+       // Add visual indicator logic here if desired
     }
   };
 
-  const handleDragLeave = () => {
-    setIsDraggingOver(false);
-  };
-
-  const handleDrop = (e: React.DragEvent<HTMLDivElement>) => {
+  const handleDrop = (e: React.DragEvent) => {
     e.preventDefault();
-    const dragId = e.dataTransfer.getData('text/plain');
-    if (dragId && dragId !== block.id) {
-        onMoveBlock(dragId, block.id);
+    if (draggedBlockId) {
+      onMoveBlock(draggedBlockId, block.id);
     }
-    setIsDraggingOver(false);
     onSetDraggedBlockId(null);
   };
+  
+  const placeholderText = block.type === 'p' ? '블로그 글 작성을 시작해보세요. /를 입력하여 명령어 메뉴를 열 수 있습니다.' : `제목 ${block.type.substring(1)}`;
 
   return (
     <div
       ref={blockRef}
-      className={`relative group py-1 transition-opacity ${draggedBlockId === block.id ? 'opacity-30' : 'opacity-100'}`}
+      className={`relative group flex items-start gap-1 py-1 ${draggedBlockId === block.id ? 'opacity-50' : ''}`}
       onFocus={onFocus}
-      draggable
-      onDragStart={handleDragStart}
-      onDragEnd={handleDragEnd}
+      onClick={onFocus}
+      onMouseEnter={() => setShowControls(true)}
+      onMouseLeave={() => setShowControls(false)}
       onDragOver={handleDragOver}
-      onDragLeave={handleDragLeave}
       onDrop={handleDrop}
     >
-      {isDraggingOver && <div className="absolute top-0 left-[-2rem] right-0 h-0.5 bg-blue-500 z-10" />}
-      <div className={`absolute top-0 -left-12 h-full flex items-center gap-1 opacity-0 group-focus-within:opacity-100 group-hover:opacity-100 transition-opacity`}>
-        <button className="p-1 rounded text-gray-400 hover:bg-slate-200 dark:hover:bg-zinc-700" aria-label="Add block below">
-          <PlusIcon />
+      <div className={`flex items-center absolute -left-10 top-1.5 transition-opacity duration-200 ${isActive || showControls ? 'opacity-100' : 'opacity-0'}`}>
+        <button className="p-0.5 rounded text-gray-400 hover:bg-slate-200 dark:hover:bg-zinc-700">
+          <PlusIcon className="w-4 h-4" />
         </button>
-        <div 
-          className="p-1 rounded text-gray-400 hover:bg-slate-200 dark:hover:bg-zinc-700 cursor-grab" 
+        <button 
+          className="p-0.5 rounded text-gray-400 hover:bg-slate-200 dark:hover:bg-zinc-700 cursor-grab"
+          draggable
+          onDragStart={handleDragStart}
+          onDragEnd={() => onSetDraggedBlockId(null)}
+          onClick={(e) => { e.stopPropagation(); onOpenMenu(block.id, blockRef); }}
         >
-          <DragHandleIcon />
-        </div>
+          <DragHandleIcon className="w-4 h-4" />
+        </button>
       </div>
       <ContentEditable
         innerRef={contentEditableRef}
@@ -140,14 +158,14 @@ const EditableBlock: React.FC<EditableBlockProps> = ({
         disabled={false}
         onChange={handleChange}
         onKeyDown={handleKeyDown}
-        tagName={Tag}
-        className={`w-full outline-none leading-relaxed relative
-          ${block.type === 'h1' ? 'text-4xl font-bold' : ''}
-          ${block.type === 'h2' ? 'text-2xl font-semibold' : ''}
-          ${block.type === 'p' ? 'text-base' : ''}
-          ${!block.content && isActive ? 'before:content-[attr(data-placeholder)] before:text-gray-400 before:dark:text-zinc-500 before:absolute before:left-0 before:top-1' : ''}`
-        }
-        data-placeholder={getPlaceholder()}
+        tagName={tag}
+        className={`w-full outline-none leading-relaxed
+          ${!block.content ? 'before:content-[attr(data-placeholder)] before:text-gray-400 before:dark:text-zinc-500 before:pointer-events-none' : ''}
+          ${block.type === 'h1' && 'text-3xl font-bold mt-4 mb-2'}
+          ${block.type === 'h2' && 'text-2xl font-bold mt-3 mb-1.5'}
+          ${block.type === 'h3' && 'text-xl font-bold mt-2 mb-1'}
+        `}
+        data-placeholder={placeholderText}
       />
     </div>
   );

@@ -1,90 +1,72 @@
-import React, { useState } from 'react';
-import { createPortal } from 'react-dom';
-import { ContentSmallIcon, BookIcon, TicketIcon, VideoSmallIcon, TvIcon, ShoppingIcon, HeadphonesIcon, ImageSmallIcon, NewsIcon, FullscreenIcon } from './Icons';
+import React from 'react';
+import { 
+    PhotoIcon, MyboxIcon, VideoIcon, StickerIcon, QuoteIcon, DividerIcon, LinkIcon, FileIcon, 
+    CalendarIcon, CodeIcon, TableIcon, EquationIcon, LocationIcon, WonIcon, BookSearchIcon
+} from './Icons';
 
 interface BottomBarProps {
-  activeTab: string;
-  setActiveTab: (tab: string) => void;
+  onOpenImageUploadMenu: () => void;
 }
 
-const options = [
-  { icon: <ContentSmallIcon />, label: '글감', type: 'button', hasText: true },
-  { type: 'separator' },
-  { icon: <BookIcon />, label: '책', type: 'button' },
-  { icon: <TicketIcon />, label: '티켓', type: 'button' },
-  { icon: <VideoSmallIcon />, label: '영화', type: 'button' },
-  { icon: <TvIcon />, label: 'TV', type: 'button' },
-  { icon: <ShoppingIcon />, label: '쇼핑', type: 'button' },
-  { icon: <HeadphonesIcon />, label: '음악 글감', type: 'button' },
-  { icon: <ImageSmallIcon />, label: '이미지', type: 'button' },
-  { icon: <NewsIcon />, label: '뉴스', type: 'button' },
-  { type: 'separator' },
-  { icon: <FullscreenIcon />, label: '확대/축소', type: 'button' },
-];
+const TooltipButton: React.FC<{ label: string; onClick?: () => void; children: React.ReactNode }> = ({ label, onClick, children }) => (
+  <div className="relative group">
+    <button
+      onClick={onClick}
+      className="p-2 rounded-lg text-zinc-400 hover:text-white hover:bg-zinc-700 transition-colors"
+    >
+      {children}
+    </button>
+    <div className="absolute bottom-full mb-2 px-2 py-1 bg-black text-white text-xs rounded-md whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none">
+      {label}
+    </div>
+  </div>
+);
 
-const BottomBar: React.FC<BottomBarProps> = ({ activeTab, setActiveTab }) => {
-  const [tooltip, setTooltip] = useState<{ visible: boolean; text: string; top: number; left: number } | null>(null);
+// FIX: Added an interface for menu items to make the 'action' property optional, fixing the type error.
+interface MenuItem {
+  label: string;
+  icon: React.ReactNode;
+  action?: () => void;
+}
 
-  const handleMouseEnter = (e: React.MouseEvent<HTMLButtonElement>, text: string) => {
-    const option = options.find(opt => opt.type === 'button' && opt.label === text);
-    if (option && option.hasText) return;
+const BottomBar: React.FC<BottomBarProps> = ({ onOpenImageUploadMenu }) => {
+  const menuItems: MenuItem[] = [
+    { label: '사진', icon: <PhotoIcon className="w-5 h-5" />, action: onOpenImageUploadMenu },
+    { label: 'MYBOX', icon: <MyboxIcon className="w-5 h-5" /> },
+    { label: '동영상', icon: <VideoIcon className="w-5 h-5" /> },
+    { label: '스티커', icon: <StickerIcon className="w-5 h-5" /> },
+    { label: '인용구', icon: <QuoteIcon className="w-5 h-5" /> },
+    { label: '구분선', icon: <DividerIcon className="w-5 h-5" /> },
+    { label: '링크', icon: <LinkIcon className="w-5 h-5" /> },
+    { label: '파일', icon: <FileIcon className="w-5 h-5" /> },
+    { label: '일정', icon: <CalendarIcon className="w-5 h-5" /> },
+    { label: '소스코드', icon: <CodeIcon className="w-5 h-5" /> },
+    { label: '표', icon: <TableIcon className="w-5 h-5" /> },
+    { label: '수식', icon: <EquationIcon className="w-5 h-5" /> },
+  ];
 
-    const rect = e.currentTarget.getBoundingClientRect();
-    setTooltip({
-      visible: true,
-      text: text,
-      top: rect.top - 38, // Position tooltip above the button
-      left: rect.left + rect.width / 2,
-    });
-  };
-
-  const handleMouseLeave = () => {
-    setTooltip(null);
-  };
+  const extraItems: MenuItem[] = [
+    { label: '장소', icon: <LocationIcon className="w-5 h-5" /> },
+    { label: '내돈내산', icon: <WonIcon className="w-5 h-5" /> },
+    { label: '글감', icon: <BookSearchIcon className="w-5 h-5" /> },
+  ];
 
   return (
-    <>
-      <div className="fixed bottom-4 left-1/2 -translate-x-1/2 bg-white/90 dark:bg-zinc-800/90 backdrop-blur-sm border border-gray-200 dark:border-zinc-700 p-2 flex items-center shadow-lg rounded-xl box-border transition-colors z-40">
-        <div className="flex items-center gap-1">
-          {options.map((option, index) => {
-            if (option.type === 'separator') {
-              return <div key={`sep-${index}`} className="w-px h-5 bg-gray-200 dark:bg-zinc-600 mx-1" />;
-            }
-
-            const isActive = activeTab === option.label;
-            return (
-              <button
-                key={option.label}
-                onClick={() => setActiveTab(option.label)}
-                onMouseEnter={(e) => handleMouseEnter(e, option.label)}
-                onMouseLeave={handleMouseLeave}
-                aria-label={option.label}
-                className={`flex items-center justify-center p-2 rounded-lg transition-colors
-                  ${isActive ? 'text-[#03c75a]' : 'text-gray-600 dark:text-gray-300'}
-                  ${option.hasText ? 'pr-3' : 'hover:bg-gray-100 dark:hover:bg-zinc-700'}
-                `}
-              >
-                <div className="w-6 h-6">{option.icon}</div>
-                {option.hasText && <span className="ml-1 text-sm font-medium">{option.label}</span>}
-              </button>
-            );
-          })}
-        </div>
+    <div className="fixed bottom-8 left-1/2 -translate-x-1/2 z-40">
+      <div className="flex items-center gap-1 bg-zinc-800/80 backdrop-blur-sm p-2 rounded-xl shadow-lg border border-zinc-700">
+        {menuItems.map(item => (
+          <TooltipButton key={item.label} label={item.label} onClick={item.action}>
+            {item.icon}
+          </TooltipButton>
+        ))}
+        <div className="h-6 w-px bg-zinc-600 mx-1"></div>
+        {extraItems.map(item => (
+          <TooltipButton key={item.label} label={item.label} onClick={item.action}>
+            {item.icon}
+          </TooltipButton>
+        ))}
       </div>
-      {tooltip && tooltip.visible && createPortal(
-        <div
-          className="fixed bg-gray-800 text-white text-xs px-2 py-1 rounded shadow-lg z-[100] pointer-events-none"
-          style={{
-            top: `${tooltip.top}px`,
-            left: `${tooltip.left}px`,
-            transform: 'translateX(-50%)',
-          }}
-        >
-          {tooltip.text}
-        </div>,
-        document.body
-      )}
-    </>
+    </div>
   );
 };
 

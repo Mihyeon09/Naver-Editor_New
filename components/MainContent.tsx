@@ -10,9 +10,11 @@ interface MainContentProps {
   onTitleEnter: () => void;
   blocks: Block[];
   onUpdateBlock: (id: string, content: string) => void;
+  // FIX: Corrected the type for onUpdateBlockData to allow passing partial block data.
+  onUpdateBlockData: (id: string, data: Partial<NonNullable<Block['data']>>) => void;
+  onAiImageCorrection: (blockId: string) => Promise<void>;
   onSetActiveBlock: (id: string | null) => void;
   activeBlockId: string | null;
-  onAddBlockAfter: (currentBlockId: string) => void;
   onDeleteBlock: (blockId: string) => void;
   nextFocusId: string | null;
   onSetNextFocusId: (id: string | null) => void;
@@ -20,6 +22,11 @@ interface MainContentProps {
   onMoveBlock: (dragId: string, dropId: string) => void;
   draggedBlockId: string | null;
   onSetDraggedBlockId: (id: string | null) => void;
+  isSlashMenuOpen: boolean;
+  onOpenSlashMenu: (blockId: string, position: { top: number; left: number }) => void;
+  onCloseSlashMenu: () => void;
+  onUpdateSlashMenuFilter: (filter: string) => void;
+  onSlashMenuKeyDown: (key: 'ArrowUp' | 'ArrowDown' | 'Enter') => void;
 }
 
 const MainContent: React.FC<MainContentProps> = ({
@@ -28,16 +35,22 @@ const MainContent: React.FC<MainContentProps> = ({
   onTitleEnter,
   blocks,
   onUpdateBlock,
+  onUpdateBlockData,
+  onAiImageCorrection,
   onSetActiveBlock,
   activeBlockId,
-  onAddBlockAfter,
   onDeleteBlock,
   nextFocusId,
   onSetNextFocusId,
   onOpenBlockMenu,
   onMoveBlock,
   draggedBlockId,
-  onSetDraggedBlockId
+  onSetDraggedBlockId,
+  isSlashMenuOpen,
+  onOpenSlashMenu,
+  onCloseSlashMenu,
+  onUpdateSlashMenuFilter,
+  onSlashMenuKeyDown
 }) => {
   return (
     <main 
@@ -61,11 +74,15 @@ const MainContent: React.FC<MainContentProps> = ({
               <ImageBlock
                 key={block.id}
                 block={block}
+                isActive={activeBlockId === block.id}
                 onFocus={() => onSetActiveBlock(block.id)}
                 onOpenMenu={onOpenBlockMenu}
                 onMoveBlock={onMoveBlock}
                 draggedBlockId={draggedBlockId}
                 onSetDraggedBlockId={onSetDraggedBlockId}
+                onUpdateBlockData={onUpdateBlockData}
+                onAiImageCorrection={onAiImageCorrection}
+                onDeleteBlock={onDeleteBlock}
               />
             );
           }
@@ -76,7 +93,6 @@ const MainContent: React.FC<MainContentProps> = ({
               onUpdate={onUpdateBlock}
               onFocus={() => onSetActiveBlock(block.id)}
               isActive={activeBlockId === block.id}
-              onAddBlockAfter={onAddBlockAfter}
               onDeleteBlock={onDeleteBlock}
               isFirst={index === 0}
               shouldFocus={nextFocusId === block.id}
@@ -85,6 +101,11 @@ const MainContent: React.FC<MainContentProps> = ({
               onMoveBlock={onMoveBlock}
               draggedBlockId={draggedBlockId}
               onSetDraggedBlockId={onSetDraggedBlockId}
+              isSlashMenuOpen={isSlashMenuOpen}
+              onOpenSlashMenu={onOpenSlashMenu}
+              onCloseSlashMenu={onCloseSlashMenu}
+              onUpdateSlashMenuFilter={onUpdateSlashMenuFilter}
+              onSlashMenuKeyDown={onSlashMenuKeyDown}
             />
           );
         })}

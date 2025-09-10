@@ -1,19 +1,19 @@
 import React from 'react';
 
-interface IconButtonProps {
-  icon: React.ReactNode;
-  label: string;
-  onClick?: () => void;
+// This component is currently not used in the application.
+// It can be used as a template for creating icon buttons.
+
+interface IconButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
+  children: React.ReactNode;
 }
 
-const IconButton: React.FC<IconButtonProps> = ({ icon, label, onClick }) => {
+const IconButton: React.FC<IconButtonProps> = ({ children, className, ...props }) => {
   return (
     <button
-      onClick={onClick}
-      className="bg-transparent border-none cursor-pointer flex flex-col items-center text-xs text-gray-600 dark:text-gray-300 gap-1 p-1.5 rounded transition-colors hover:bg-slate-100 dark:hover:bg-zinc-700"
+      {...props}
+      className={`w-8 h-8 p-0 flex justify-center items-center bg-transparent border-none cursor-pointer rounded-full hover:bg-slate-100 dark:hover:bg-zinc-700 transition-colors ${className || ''}`}
     >
-      {icon}
-      <span>{label}</span>
+      {children}
     </button>
   );
 };
