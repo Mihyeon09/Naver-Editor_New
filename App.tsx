@@ -7,12 +7,14 @@ import SideIcons from './components/SideIcons';
 import BlockMenu from './components/BlockMenu';
 import SlashCommandMenu from './components/SlashCommandMenu';
 import ImageUploadMenu from './components/ImageUploadMenu';
-import { TextIcon, Heading1Icon, Heading2Icon, Heading3Icon, PhotoIcon } from './components/Icons';
+import AIActionMenu from './components/AIActionMenu';
+import FloatingToolbar from './components/FloatingToolbar';
+import { TextIcon, Heading1Icon, Heading2Icon, Heading3Icon, PhotoIcon, AIIcon } from './components/Icons';
 import { createPortal } from 'react-dom';
 
 export type BlockType = 'p' | 'h1' | 'h2' | 'h3' | 'image';
 export type Theme = 'light' | 'dark';
-export type CommandValue = BlockType | 'upload-image';
+export type CommandValue = BlockType | 'upload-image' | 'ask-ai';
 
 
 export interface Block {
@@ -30,7 +32,6 @@ export interface CommandItem {
   value: CommandValue;
   icon: React.ReactNode;
   title: string;
-  description: string;
 }
 
 const initialBlocks: Block[] = [
@@ -54,28 +55,48 @@ const App: React.FC = () => {
   const [slashMenuBlockId, setSlashMenuBlockId] = useState<string | null>(null);
   const [slashMenuSelectedIndex, setSlashMenuSelectedIndex] = useState(0);
   const [isImageUploadMenuOpen, setIsImageUploadMenuOpen] = useState(false);
+  const [isAiMenuOpen, setIsAiMenuOpen] = useState(false);
+  const [aiMenuPosition, setAiMenuPosition] = useState<{ top: number; left: number } | null>(null);
+  const [floatingToolbarState, setFloatingToolbarState] = useState<{ x: number; y: number } | null>(null);
 
 
   const mainContentRef = useRef<HTMLDivElement>(null);
 
   const commandItems: CommandItem[] = [
-    { value: 'p', icon: <TextIcon />, title: '텍스트', description: '일반 텍스트를 입력합니다.' },
-    { value: 'h1', icon: <Heading1Icon />, title: '제목 1', description: '가장 큰 제목입니다.' },
-    { value: 'h2', icon: <Heading2Icon />, title: '제목 2', description: '중간 크기 제목입니다.' },
-    { value: 'h3', icon: <Heading3Icon />, title: '제목 3', description: '작은 크기 제목입니다.' },
-    { value: 'upload-image', icon: <PhotoIcon />, title: '이미지', description: '이미지를 업로드합니다.' },
+    { value: 'p', icon: <TextIcon />, title: '텍스트' },
+    { value: 'h1', icon: <Heading1Icon />, title: '제목 1' },
+    { value: 'h2', icon: <Heading2Icon />, title: '제목 2' },
+    { value: 'h3', icon: <Heading3Icon />, title: '제목 3' },
+    { value: 'upload-image', icon: <PhotoIcon />, title: '이미지' },
+    { value: 'ask-ai', icon: <AIIcon />, title: 'AI에게 물어보기' },
   ];
 
   const filteredCommands = commandItems.filter(cmd =>
-    cmd.title.toLowerCase().includes(slashMenuFilter.toLowerCase()) ||
-    cmd.description.toLowerCase().includes(slashMenuFilter.toLowerCase())
+    cmd.title.toLowerCase().includes(slashMenuFilter.toLowerCase())
   );
 
   useEffect(() => {
     document.documentElement.classList.toggle('dark', theme === 'dark');
   }, [theme]);
+  
+  const handleCloseFloatingToolbar = useCallback(() => {
+    setFloatingToolbarState(null);
+  }, []);
 
-  const handleToggleTheme = () => setTheme(prev => (prev === 'light' ? 'dark' : 'light'));
+  useEffect(() => {
+    const handleClickOutside = () => {
+        const selection = window.getSelection();
+        if (selection && selection.isCollapsed) {
+            handleCloseFloatingToolbar();
+        }
+    };
+    document.addEventListener('click', handleClickOutside);
+    return () => {
+        document.removeEventListener('click', handleClickOutside);
+    };
+  }, [handleCloseFloatingToolbar]);
+
+
   const handleSave = () => setSaveCount(prev => prev + 1);
   const handlePublish = () => alert('Published!');
 
@@ -188,6 +209,68 @@ const App: React.FC = () => {
     setSlashMenuFilter('');
     setSlashMenuBlockId(null);
   }, []);
+
+  const handleOpenAiMenu = (position: { top: number; left: number }) => {
+    setAiMenuPosition(position);
+    setIsAiMenuOpen(true);
+  };
+
+  const handleCloseAiMenu = useCallback(() => {
+    setIsAiMenuOpen(false);
+    setAiMenuPosition(null);
+  }, []);
+
+  const handleSummarize = async () => {
+    handleCloseAiMenu();
+    const contentToSummarize = blocks.map(b => b.content).filter(c => c.trim()).join('\n\n');
+    if (!contentToSummarize.trim()) {
+      alert('요약할 내용이 없습니다.');
+      return;
+    }
+  
+    const loadingBlockId = `block-${Date.now()}`;
+    const newBlocks = [...blocks, { id: loadingBlockId, type: 'p' as BlockType, content: 'AI가 요약 중입니다...' }];
+    setBlocks(newBlocks);
+  
+    try {
+      const response = await ai.models.generateContent({
+        model: 'gemini-2.5-flash',
+        contents: `다음 텍스트를 핵심만 간추려 요약해 주세요:\n\n${contentToSummarize}`,
+      });
+      const summaryText = response.text;
+      
+      setBlocks(prev => prev.map(b => b.id === loadingBlockId ? { ...b, content: summaryText } : b));
+    } catch (error) {
+      console.error('AI summarization failed', error);
+      setBlocks(prev => prev.map(b => b.id === loadingBlockId ? { ...b, content: 'AI 요약에 실패했습니다.' } : b));
+    }
+  };
+
+  const handleCreateChecklist = async () => {
+    handleCloseAiMenu();
+    const content = blocks.map(b => b.content).filter(c => c.trim()).join('\n\n');
+    if (!content.trim()) {
+      alert('체크리스트를 만들 내용이 없습니다.');
+      return;
+    }
+  
+    const loadingBlockId = `block-${Date.now()}`;
+    const newBlocks = [...blocks, { id: loadingBlockId, type: 'p' as BlockType, content: 'AI가 체크리스트를 생성 중입니다...' }];
+    setBlocks(newBlocks);
+  
+    try {
+      const response = await ai.models.generateContent({
+        model: 'gemini-2.5-flash',
+        contents: `다음 내용을 바탕으로, 실행 가능한 후속 조치 체크리스트를 간결하게 만들어주세요. 각 항목은 하이픈(-)으로 시작하게 해주세요:\n\n${content}`,
+      });
+      const checklistText = response.text;
+      
+      setBlocks(prev => prev.map(b => b.id === loadingBlockId ? { ...b, content: checklistText } : b));
+    } catch (error) {
+      console.error('AI checklist creation failed', error);
+      setBlocks(prev => prev.map(b => b.id === loadingBlockId ? { ...b, content: 'AI 체크리스트 생성에 실패했습니다.' } : b));
+    }
+  };
   
   const openImageUploadMenu = () => {
     setIsImageUploadMenuOpen(true);
@@ -198,6 +281,10 @@ const App: React.FC = () => {
     if (value === 'upload-image') {
       handleUpdateBlock(id, ''); 
       openImageUploadMenu();
+    } else if (value === 'ask-ai') {
+        if(slashMenuPosition) {
+            handleOpenAiMenu(slashMenuPosition);
+        }
     } else {
       handleChangeBlockType(id, value);
     }
@@ -208,7 +295,6 @@ const App: React.FC = () => {
     if (key === 'ArrowUp') {
       setSlashMenuSelectedIndex(prev => (prev > 0 ? prev - 1 : filteredCommands.length - 1));
     } else if (key === 'ArrowDown') {
-      // FIX: ArrowDown should increment the index, not decrement it.
       setSlashMenuSelectedIndex(prev => (prev < filteredCommands.length - 1 ? prev + 1 : 0));
     } else if (key === 'Enter') {
       if (slashMenuBlockId && filteredCommands[slashMenuSelectedIndex]) {
@@ -216,11 +302,28 @@ const App: React.FC = () => {
       }
     }
   }, [isSlashMenuOpen, slashMenuBlockId, filteredCommands, slashMenuSelectedIndex, handleCommandSelect]);
+  
+  const handleTextSelect = useCallback((range: Range | null) => {
+    if (range) {
+        const rect = range.getBoundingClientRect();
+        if (rect.width === 0) {
+            setFloatingToolbarState(null);
+            return;
+        }
+        const toolbarWidth = 300; // Estimated width of the toolbar
+        const x = rect.left + window.scrollX + rect.width / 2 - toolbarWidth / 2;
+        const y = rect.top + window.scrollY - 50;
+        setFloatingToolbarState({ x, y });
+    } else {
+        setFloatingToolbarState(null);
+    }
+  }, []);
+
 
   return (
     <>
       <div ref={mainContentRef} className="h-screen flex flex-col font-sans bg-white dark:bg-zinc-800">
-        <Header saveCount={saveCount} onSave={handleSave} onPublish={handlePublish} theme={theme} onToggleTheme={handleToggleTheme} />
+        <Header saveCount={saveCount} onSave={handleSave} onPublish={handlePublish} />
         <div className="flex-grow flex flex-col overflow-hidden">
           <MainContent
             title={title}
@@ -244,6 +347,7 @@ const App: React.FC = () => {
             onCloseSlashMenu={handleCloseSlashMenu}
             onUpdateSlashMenuFilter={setSlashMenuFilter}
             onSlashMenuKeyDown={handleSlashMenuKeyDown}
+            onTextSelect={handleTextSelect}
           />
         </div>
         <BottomBar onOpenImageUploadMenu={openImageUploadMenu} />
@@ -278,6 +382,25 @@ const App: React.FC = () => {
         <ImageUploadMenu 
             onClose={() => setIsImageUploadMenuOpen(false)} 
             onImageSelect={handleAddImageBlock} 
+        />,
+        document.body
+      )}
+
+      {isAiMenuOpen && aiMenuPosition && createPortal(
+        <AIActionMenu
+          position={aiMenuPosition}
+          onClose={handleCloseAiMenu}
+          onSummarize={handleSummarize}
+          onCreateChecklist={handleCreateChecklist}
+        />,
+        document.body
+      )}
+
+      {floatingToolbarState && createPortal(
+        <FloatingToolbar
+            x={floatingToolbarState.x}
+            y={floatingToolbarState.y}
+            onClose={handleCloseFloatingToolbar}
         />,
         document.body
       )}

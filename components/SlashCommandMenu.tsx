@@ -30,12 +30,11 @@ const SlashCommandMenu: React.FC<SlashCommandMenuProps> = ({ blockId, commands, 
                                 index === selectedIndex ? 'bg-zinc-700' : 'hover:bg-zinc-700/50'
                             }`}
                         >
-                            <div className="flex-shrink-0 w-8 h-8 flex items-center justify-center border border-zinc-600 rounded">
+                            <div className="flex-shrink-0 w-8 h-8 flex items-center justify-center border border-zinc-600 rounded text-zinc-400">
                                 {cmd.icon}
                             </div>
                             <div>
                                 <div className="font-medium text-sm text-zinc-100">{cmd.title}</div>
-                                <div className="text-xs text-zinc-400">{cmd.description}</div>
                             </div>
                         </button>
                     </li>

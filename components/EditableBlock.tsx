@@ -12,7 +12,7 @@ interface EditableBlockProps {
   isFirst: boolean;
   shouldFocus: boolean;
   onDoneFocusing: () => void;
-  onOpenMenu: (blockId: string, ref: React.RefObject<HTMLDivElement>) => void;
+  onOpenMenu: (blockId: string, ref: React.RefObject<HTMLButtonElement>) => void;
   onMoveBlock: (dragId: string, dropId: string) => void;
   draggedBlockId: string | null;
   onSetDraggedBlockId: (id: string | null) => void;
@@ -21,6 +21,7 @@ interface EditableBlockProps {
   onCloseSlashMenu: () => void;
   onUpdateSlashMenuFilter: (filter: string) => void;
   onSlashMenuKeyDown: (key: 'ArrowUp' | 'ArrowDown' | 'Enter') => void;
+  onTextSelect: (range: Range | null) => void;
 }
 
 const getCaretCoordinates = () => {
@@ -56,9 +57,11 @@ const EditableBlock: React.FC<EditableBlockProps> = ({
   onCloseSlashMenu,
   onUpdateSlashMenuFilter,
   onSlashMenuKeyDown,
+  onTextSelect,
 }) => {
   const contentEditableRef = useRef<HTMLElement>(null);
-  const blockRef = useRef<HTMLDivElement>(null);
+  const handleRef = useRef<HTMLButtonElement>(null);
+  const plusButtonRef = useRef<HTMLButtonElement>(null);
   const [showControls, setShowControls] = useState(false);
   const tag = block.type as keyof JSX.IntrinsicElements;
 
@@ -73,14 +76,11 @@ const EditableBlock: React.FC<EditableBlockProps> = ({
     const newContent = e.target.value;
     onUpdate(block.id, newContent);
 
-    if (newContent.includes('/')) {
+    if (newContent.startsWith('/')) {
         const caret = getCaretCoordinates();
-        const slashIndex = newContent.lastIndexOf('/');
-        const filter = newContent.substring(slashIndex + 1);
+        const filter = newContent.substring(1);
         onUpdateSlashMenuFilter(filter);
-        if (!isSlashMenuOpen) {
-            onOpenSlashMenu(block.id, { top: caret.y + 24, left: caret.x });
-        }
+        onOpenSlashMenu(block.id, { top: caret.y + 24, left: caret.x });
     } else {
         if (isSlashMenuOpen) {
             onCloseSlashMenu();
@@ -104,6 +104,14 @@ const EditableBlock: React.FC<EditableBlockProps> = ({
       }
     }
   };
+
+  const handleMouseUp = () => {
+    const selection = window.getSelection();
+    if (selection && !selection.isCollapsed && selection.rangeCount > 0) {
+      const range = selection.getRangeAt(0);
+      onTextSelect(range);
+    }
+  };
   
   const handleDragStart = (e: React.DragEvent) => {
     onSetDraggedBlockId(block.id);
@@ -125,11 +133,18 @@ const EditableBlock: React.FC<EditableBlockProps> = ({
     onSetDraggedBlockId(null);
   };
   
+  const handlePlusClick = () => {
+    if (plusButtonRef.current) {
+        const rect = plusButtonRef.current.getBoundingClientRect();
+        onOpenSlashMenu(block.id, { top: rect.bottom, left: rect.left });
+        onUpdateSlashMenuFilter('');
+    }
+  };
+
   const placeholderText = block.type === 'p' ? '블로그 글 작성을 시작해보세요. /를 입력하여 명령어 메뉴를 열 수 있습니다.' : `제목 ${block.type.substring(1)}`;
 
   return (
     <div
-      ref={blockRef}
       className={`relative group flex items-start gap-1 py-1 ${draggedBlockId === block.id ? 'opacity-50' : ''}`}
       onFocus={onFocus}
       onClick={onFocus}
@@ -139,15 +154,20 @@ const EditableBlock: React.FC<EditableBlockProps> = ({
       onDrop={handleDrop}
     >
       <div className={`flex items-center absolute -left-10 top-1.5 transition-opacity duration-200 ${isActive || showControls ? 'opacity-100' : 'opacity-0'}`}>
-        <button className="p-0.5 rounded text-gray-400 hover:bg-slate-200 dark:hover:bg-zinc-700">
+        <button 
+          ref={plusButtonRef}
+          onClick={handlePlusClick}
+          className="p-0.5 rounded text-gray-400 hover:bg-slate-200 dark:hover:bg-zinc-700"
+        >
           <PlusIcon className="w-4 h-4" />
         </button>
         <button 
+          ref={handleRef}
           className="p-0.5 rounded text-gray-400 hover:bg-slate-200 dark:hover:bg-zinc-700 cursor-grab"
           draggable
           onDragStart={handleDragStart}
           onDragEnd={() => onSetDraggedBlockId(null)}
-          onClick={(e) => { e.stopPropagation(); onOpenMenu(block.id, blockRef); }}
+          onClick={(e) => { e.stopPropagation(); onOpenMenu(block.id, handleRef); }}
         >
           <DragHandleIcon className="w-4 h-4" />
         </button>
@@ -158,6 +178,7 @@ const EditableBlock: React.FC<EditableBlockProps> = ({
         disabled={false}
         onChange={handleChange}
         onKeyDown={handleKeyDown}
+        onMouseUp={handleMouseUp}
         tagName={tag}
         className={`w-full outline-none leading-relaxed
           ${!block.content ? 'before:content-[attr(data-placeholder)] before:text-gray-400 before:dark:text-zinc-500 before:pointer-events-none' : ''}

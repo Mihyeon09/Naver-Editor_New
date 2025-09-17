@@ -10,7 +10,6 @@ interface MainContentProps {
   onTitleEnter: () => void;
   blocks: Block[];
   onUpdateBlock: (id: string, content: string) => void;
-  // FIX: Corrected the type for onUpdateBlockData to allow passing partial block data.
   onUpdateBlockData: (id: string, data: Partial<NonNullable<Block['data']>>) => void;
   onAiImageCorrection: (blockId: string) => Promise<void>;
   onSetActiveBlock: (id: string | null) => void;
@@ -18,7 +17,7 @@ interface MainContentProps {
   onDeleteBlock: (blockId: string) => void;
   nextFocusId: string | null;
   onSetNextFocusId: (id: string | null) => void;
-  onOpenBlockMenu: (blockId: string, ref: React.RefObject<HTMLDivElement>) => void;
+  onOpenBlockMenu: (blockId: string, ref: React.RefObject<HTMLElement>) => void;
   onMoveBlock: (dragId: string, dropId: string) => void;
   draggedBlockId: string | null;
   onSetDraggedBlockId: (id: string | null) => void;
@@ -27,6 +26,7 @@ interface MainContentProps {
   onCloseSlashMenu: () => void;
   onUpdateSlashMenuFilter: (filter: string) => void;
   onSlashMenuKeyDown: (key: 'ArrowUp' | 'ArrowDown' | 'Enter') => void;
+  onTextSelect: (range: Range | null) => void;
 }
 
 const MainContent: React.FC<MainContentProps> = ({
@@ -50,7 +50,8 @@ const MainContent: React.FC<MainContentProps> = ({
   onOpenSlashMenu,
   onCloseSlashMenu,
   onUpdateSlashMenuFilter,
-  onSlashMenuKeyDown
+  onSlashMenuKeyDown,
+  onTextSelect
 }) => {
   return (
     <main 
@@ -106,6 +107,7 @@ const MainContent: React.FC<MainContentProps> = ({
               onCloseSlashMenu={onCloseSlashMenu}
               onUpdateSlashMenuFilter={onUpdateSlashMenuFilter}
               onSlashMenuKeyDown={onSlashMenuKeyDown}
+              onTextSelect={onTextSelect}
             />
           );
         })}
